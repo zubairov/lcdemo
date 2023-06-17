@@ -1,14 +1,21 @@
-import { PromptTemplate } from "langchain/prompts";
-import { OpenAI } from "langchain/llms";
+import { PlanAndExecuteAgentExecutor } from "langchain/experimental/plan_and_execute";
+import { SerpAPI } from "langchain/tools";
+import { Calculator } from "langchain/tools/calculator";
+import { ChatOpenAI } from "langchain/chat_models";
 
-const model = new OpenAI({
-  temperature: 0.1,
+const tools = [new Calculator(), new SerpAPI()];
+const model = new ChatOpenAI({
+  temperature: 0,
+  modelName: "gpt-3.5-turbo",
+  verbose: true,
+});
+const executor = PlanAndExecuteAgentExecutor.fromLLMAndTools({
+  llm: model,
+  tools,
 });
 
-const template = "What is the capital of {country}?";
-const prompt = new PromptTemplate({
-  template: template,
-  inputVariables: ["country"],
+const result = await executor.call({
+  input: `Who is the current president of the United States? What is their current age raised to the second power?`,
 });
-// const res = await model.call("What is the capital of Germany?");
-console.log("Hello world!", prompt.format({ country: "Grece" }));
+
+console.log({ result });
